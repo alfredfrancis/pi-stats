@@ -1,0 +1,133 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Raspberry Pi Stats</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            color: #e74c3c;
+            text-align: center;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        .stat-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 1.1em;
+        }
+        .stat-value {
+            font-size: 1.2em;
+            color: #e74c3c;
+        }
+        .refresh-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+        .refresh-button:hover {
+            background-color: #c0392b;
+        }
+        .last-updated {
+            text-align: center;
+            margin-top: 15px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Raspberry Pi Stats</h1>
+        <div class="stats-grid" id="statsContainer">
+            <!-- Stats will be inserted here by JavaScript -->
+        </div>
+        <button class="refresh-button" id="refreshButton">Refresh Stats</button>
+        <div class="last-updated" id="lastUpdated"></div>
+    </div>
+
+    <script>
+        // Function to fetch and display stats
+        async function fetchStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const stats = await response.json();
+
+                // Clear previous stats
+                const container = document.getElementById('statsContainer');
+                container.innerHTML = '';
+
+                // Add each stat to the container
+                Object.entries(stats).forEach(([key, value]) => {
+                    const card = document.createElement('div');
+                    card.className = 'stat-card';
+                    
+                    const title = document.createElement('div');
+                    title.className = 'stat-title';
+                    title.textContent = key.charAt(0).toUpperCase() + key.slice(1);
+                    
+                    const statValue = document.createElement('div');
+                    statValue.className = 'stat-value';
+                    statValue.textContent = value;
+                    
+                    card.appendChild(title);
+                    card.appendChild(statValue);
+                    container.appendChild(card);
+                });
+
+                // Update last updated time
+                document.getElementById('lastUpdated').textContent = 'Last updated: ' + new Date().toLocaleTimeString();
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+                document.getElementById('statsContainer').innerHTML = '<p>Error loading stats. Please try again.</p>';
+            }
+        }
+
+        // Initial fetch
+        fetchStats();
+
+        // Add refresh button event listener
+        document.getElementById('refreshButton').addEventListener('click', fetchStats);
+
+        // Auto refresh every 30 seconds
+        setInterval(fetchStats, 30000);
+    </script>
+</body>
+</html>
+    
